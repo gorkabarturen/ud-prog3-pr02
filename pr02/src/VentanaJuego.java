@@ -134,7 +134,7 @@ public class VentanaJuego extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if (miHilo!=null) miHilo.acaba();
-			}
+			} 
 		});
 	}
 	
