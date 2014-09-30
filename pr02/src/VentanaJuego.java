@@ -16,7 +16,7 @@ public class VentanaJuego extends JFrame {
 	MundoJuego miMundo;        // Mundo del juego
 	CocheJuego miCoche;        // Coche del juego
 	MiRunnable miHilo = null;  // Hilo del bucle principal de juego	
-
+	boolean arrayPressed [] = new boolean [4];
 	/** Constructor de la ventana de juego. Crea y devuelve la ventana inicializada
 	 * sin coches dentro
 	 */
@@ -79,23 +79,47 @@ public class VentanaJuego extends JFrame {
 			public void keyPressed(KeyEvent e) {
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_UP: {
-						miCoche.acelera( +5, 1 );
+						arrayPressed[0] = true;
 						break;
 					}
 					case KeyEvent.VK_DOWN: {
-						miCoche.acelera( -5, 1 );
+						arrayPressed[1] = true;
 						break;
 					}
 					case KeyEvent.VK_LEFT: {
-						miCoche.gira( +10 );
+						arrayPressed[2] = true;
 						break;
 					}
 					case KeyEvent.VK_RIGHT: {
-						miCoche.gira( -10 );
+						arrayPressed[3] = true;
 						break;
 					}
 				}
 			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_UP: {
+					arrayPressed[0] = false;
+					break;
+				}
+				case KeyEvent.VK_DOWN: {
+					arrayPressed[1] = false;
+					break;
+				}
+				case KeyEvent.VK_LEFT: {
+					arrayPressed[2] = false;
+					break;
+				}
+				case KeyEvent.VK_RIGHT: {
+					arrayPressed[3] = false;
+					break;
+				}
+			}
+		}
+		
+			
 		});
 		pPrincipal.setFocusable(true);
 		pPrincipal.requestFocus();
@@ -158,6 +182,27 @@ public class VentanaJuego extends JFrame {
 					miMundo.rebotaHorizontal(miCoche);
 				if (miMundo.hayChoqueVertical(miCoche)) // Espejo vertical si choca en Y
 					miMundo.rebotaVertical(miCoche);
+				
+				if(arrayPressed[0] == true)
+				{
+					miCoche.acelera( +5, 1 );
+
+				}
+				if(arrayPressed[1] == true)
+				{
+					miCoche.acelera( -5, 1 );
+
+				}
+				if(arrayPressed[2] == true)
+				{
+					miCoche.gira( +10 );
+
+				}
+				if(arrayPressed[3] == true)
+				{
+					miCoche.gira( -10 );
+
+				}
 				// Dormir el hilo 40 milisegundos
 				try {
 					Thread.sleep( 40 );
