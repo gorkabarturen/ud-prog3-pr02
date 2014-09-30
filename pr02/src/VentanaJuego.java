@@ -6,7 +6,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /** Clase principal de minijuego de coche para Práctica 02 - Prog III
- * Ventana del minijuego.
+ * Ventana del minijuego.  
  * @author Andoni Eguíluz
  * Facultad de Ingeniería - Universidad de Deusto (2014)
  */
