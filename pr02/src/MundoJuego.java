@@ -1,4 +1,8 @@
 
+import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.Random;
+
 import javax.swing.JPanel;
 
 /** "Mundo" del juego del coche.
@@ -10,12 +14,19 @@ import javax.swing.JPanel;
 public class MundoJuego {
 	private JPanel panel;  // panel visual del juego
 	CocheJuego miCoche;    // Coche del juego
+	ArrayList <JLabelEstrella> arrayDeEstrellas = new ArrayList<>();
 	
 	/** Construye un mundo de juego
 	 * @param panel	Panel visual del juego
 	 */
 	public MundoJuego( JPanel panel ) {
 		this.panel = panel;
+		Random numeroRandom = new Random();
+		JLabelEstrella estrella = new JLabelEstrella();
+		arrayDeEstrellas.add(estrella);
+		estrella.setLocation(numeroRandom.nextInt(1000), numeroRandom.nextInt(750));
+		panel.add(estrella);
+		panel.repaint();
 	}
 
 	/** Crea un coche nuevo y lo añade al mundo y al panel visual
@@ -106,5 +117,107 @@ public class MundoJuego {
 	public static double calcVelocidadConAceleracion( double vel, double acel, double tiempo ) {
 		return vel + (acel*tiempo);
 	}
+	
+	/** Método que calcula la fuerza del rozamiento
+	 * @param masa
+	 * @param coefRozSuelo
+	 * @param coefRozAire
+	 * @param vel
+	 * @return devuelve el rozamiento total
+	 */
+	public static double calcFuerzaRozamiento( double masa, double coefRozSuelo, double coefRozAire, double vel ) { 
+			 double fuerzaRozamientoAire = coefRozAire * (-vel); // En contra del movimiento 
+			 double fuerzaRozamientoSuelo = masa * coefRozSuelo * ((vel>0)?(-1):1); // Contra mvto 
+			 return fuerzaRozamientoAire + fuerzaRozamientoSuelo; 
+			 } 
+	
+	/**Método que calcula la aceleración con la fuerza y la masa
+	 * @param fuerza
+	 * @param masa
+	 * @return devuelve la aceleración
+	 */
+	public static double calcAceleracionConFuerza( double fuerza, double masa ) { 
+		 // 2ª ley de Newton: F = m*a ---> a = F/m 
+		 return fuerza/masa; 
+		 } 
+	
+	public static void aplicarFuerza( double fuerza, Coche coche ) { 
+		 double fuerzaRozamiento = calcFuerzaRozamiento( Coche.MASA , Coche.COEF_RZTO_SUELO, Coche.COEF_RZTO_AIRE, coche.getVelocidad() ); 
+		 double aceleracion = calcAceleracionConFuerza( fuerza+fuerzaRozamiento, Coche.MASA ); 
+		 if (fuerza==0) { 
+		 // No hay fuerza, solo se aplica el rozamiento 
+		 double velAntigua = coche.getVelocidad(); 
+		 coche.acelera( aceleracion, 0.04 ); 
+		 if (velAntigua>=0 && coche.getVelocidad()<0 
+		 || velAntigua<=0 && coche.getVelocidad()>0) { 
+		 coche.setVelocidad(0); // Si se está frenando, se para (no anda al revés) 
+		 } 
+		 } else { 
+		 coche.acelera( aceleracion, 0.04 ); 
+		 } 
+	}
+	
+	/** Si han pasado más de 1,2 segundos desde la última
+	 *  crea una estrella nueva en una posición aleatoria y le añade al mundo y al panel visual */
+	long tiempo;
+	public void creaEstrella()
+	{
+		if(System.currentTimeMillis() - tiempo >= 1200)
+		{
+		Random numeroRandom = new Random();
+		JLabelEstrella estrella = new JLabelEstrella();
+		tiempo = estrella.getTiempoDeCreacion();
+		arrayDeEstrellas.add(estrella);
+		estrella.setLocation(numeroRandom.nextInt(900), numeroRandom.nextInt(700));
+		panel.add(estrella);
+		panel.repaint();
+		System.out.println("CREA UNA ESTRELLA");
+		}
+	}
+	
+	/**Quita todas las estrellas que lleven en pantalla demasiado tiempo 
+	 * y rota 10 grados las que sigan estando
+	 * @param maxTiempo Tiempo máximo para que se mantengan las estrellas (msegs)
+	 * @return Número de estrellas quitadas
+	 */
+	
+	public int quitaYRotaEstrellas ( long maxTiempo)
+	{
+		for(int i = 0 ; i<arrayDeEstrellas.size() ; i++)
+		{
+			arrayDeEstrellas.get(i).setGiro(10);
+			panel.repaint();
+		
+		if(System.currentTimeMillis() - arrayDeEstrellas.get(i).getTiempoDeCreacion() >= maxTiempo)
+		{
+			panel.remove(arrayDeEstrellas.get(i));
+			arrayDeEstrellas.remove(i);
+			return 1;
+		}
+		}
+		return 0;
+	}
+	
+	/** Calcula si hay choques del coche con alguna estrella (o varias). Se considera el coque si
+	 * se tocan las esferas lógicas del coche y la estrella. Si es así, las elimina.
+	 * @return Número de estrellas eliminadas
+	 */
+	
+	public int choquesConEstrellas ()
+	{
+		 Area areaA = new Area(miCoche.getGrafico().getBounds());
+		for( int i = 0; i < arrayDeEstrellas.size() ; i++ )
+		{
+		 Area areaB = new Area(arrayDeEstrellas.get(i).getBounds());
+		 if(areaA.intersects(areaB.getBounds2D()) && arrayDeEstrellas.get(i) != null)  
+		 {
+			panel.remove(arrayDeEstrellas.get(i));
+			arrayDeEstrellas.remove(i);
+			System.out.println("PASAS POR ENCIMA");
+			return 1;
+		 }
+		}
+		return 0;
+		}
 	
 }

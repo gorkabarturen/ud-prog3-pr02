@@ -9,6 +9,12 @@ public class Coche {
 	protected double posX;  // Posición en X (horizontal)
 	protected double posY;  // Posición en Y (vertical)
 	protected String piloto;  // Nombre de piloto
+	protected static double MASA = 1; // Masa del coche
+	protected double fuerzaBaseAlante = 2000; 
+	protected double fuerzaBaseAtras = -1000;
+	// Coeficientes de rozamiento
+	protected static double COEF_RZTO_AIRE = 0.35;
+	protected static double COEF_RZTO_SUELO = 15.5;
 	
 	// Constructores
 	
@@ -18,7 +24,7 @@ public class Coche {
 		posX = 300;
 		posY = 300;
 	}
-	
+
 	/** Devuelve la velocidad actual del coche en píxeles por segundo
 	 * @return	velocidad
 	 */
@@ -102,4 +108,29 @@ public class Coche {
 		return piloto + " (" + posX + "," + posY + ") - " +
 			   "Velocidad: " + miVelocidad + " ## Dirección: " + miDireccionActual; 
 	}
+	
+	/** Devuelve la fuerza de aceleración del coche, de acuerdo al motor definido en la práctica 2 
+	 * @return Fuerza de aceleración en Newtixels 
+	 */ 
+	 public double fuerzaAceleracionAdelante() { 
+	 if (miVelocidad<=-150) return fuerzaBaseAlante; 
+	 else if (miVelocidad<=0) 
+	 return fuerzaBaseAlante*(-miVelocidad/150*0.5+0.5); 
+	 else if (miVelocidad<=250) 
+	 return fuerzaBaseAlante*(miVelocidad/250*0.5+0.5); 
+	 else if (miVelocidad<=750) 
+	 return fuerzaBaseAlante; 
+	 else return fuerzaBaseAlante*(-(miVelocidad-1000)/250); 
+	 }
+	 
+	 public double fuerzaAceleracionAtras() { 
+		 if (miVelocidad<=-150) return fuerzaBaseAtras; 
+		 else if (miVelocidad<=0) 
+		 return fuerzaBaseAtras*(-miVelocidad/150*0.5+0.5); 
+		 else if (miVelocidad<=250) 
+		 return fuerzaBaseAtras*(miVelocidad/250*0.5+0.5); 
+		 else if (miVelocidad<=750) 
+		 return fuerzaBaseAtras; 
+		 else return fuerzaBaseAtras*(-(miVelocidad-1000)/250); 
+		 }
 }

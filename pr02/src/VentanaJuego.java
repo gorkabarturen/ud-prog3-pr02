@@ -5,6 +5,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import com.sun.org.apache.bcel.internal.generic.LMUL;
+
 /** Clase principal de minijuego de coche para Práctica 02 - Prog III
  * Ventana del minijuego.  
  * @author Andoni Eguíluz
@@ -16,7 +18,10 @@ public class VentanaJuego extends JFrame {
 	MundoJuego miMundo;        // Mundo del juego
 	CocheJuego miCoche;        // Coche del juego
 	MiRunnable miHilo = null;  // Hilo del bucle principal de juego	
-	boolean arrayPressed [] = new boolean [4];
+	int cuentaDeEstrellasFallo; // atributo que cuenta el número de estrellas que no se han cogido
+	int cuentaPuntos; // Cuenta el número de puntos obtenidos cogiendo estrellas
+	JLabel lMensaje = new JLabel("PUNTUACION"); //Mensaje de puntuación
+	boolean arrayPressed [] = new boolean [4];	 //Array de booleans que simboliza qué botón está pulsado
 	/** Constructor de la ventana de juego. Crea y devuelve la ventana inicializada
 	 * sin coches dentro
 	 */
@@ -25,53 +30,18 @@ public class VentanaJuego extends JFrame {
 		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		// Creación contenedores y componentes
 		pPrincipal = new JPanel();
-		JPanel pBotonera = new JPanel();
-		JButton bAcelerar = new JButton( "Acelera" );
-		JButton bFrenar = new JButton( "Frena" );
-		JButton bGiraIzq = new JButton( "Gira Izq." );
-		JButton bGiraDer = new JButton( "Gira Der." );
+		JPanel panelMensaje = new JPanel();
 		// Formato y layouts
 		pPrincipal.setLayout( null );
 		pPrincipal.setBackground( Color.white );
 		// Añadido de componentes a contenedores
 		add( pPrincipal, BorderLayout.CENTER );
-		pBotonera.add( bAcelerar );
-		pBotonera.add( bFrenar );
-		pBotonera.add( bGiraIzq );
-		pBotonera.add( bGiraDer );
-		add( pBotonera, BorderLayout.SOUTH );
 		// Formato de ventana
 		setSize( 1000, 750 );
 		setResizable( false );
 		// Escuchadores de botones
-		bAcelerar.addActionListener( new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				miCoche.acelera( +10, 1 );
-				// System.out.println( "Nueva velocidad de coche: " + miCoche.getVelocidad() );
-			}
-		});
-		bFrenar.addActionListener( new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				miCoche.acelera( -10, 1 );
-				// System.out.println( "Nueva velocidad de coche: " + miCoche.getVelocidad() );
-			}
-		});
-		bGiraIzq.addActionListener( new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				miCoche.gira( +10 );
-				// System.out.println( "Nueva dirección de coche: " + miCoche.getDireccionActual() );
-			}
-		});
-		bGiraDer.addActionListener( new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				miCoche.gira( -10 );
-				// System.out.println( "Nueva dirección de coche: " + miCoche.getDireccionActual() );
-			}
-		});
+		panelMensaje.add(lMensaje);
+		add(panelMensaje, BorderLayout.SOUTH);
 		
 		// Añadido para que también se gestione por teclado con el KeyListener
 		pPrincipal.addKeyListener( new KeyAdapter() {
@@ -174,8 +144,14 @@ public class VentanaJuego extends JFrame {
 		public void run() {
 			// Bucle principal forever hasta que se pare el juego...
 			while (sigo) {
+				
 				// Mover coche
 				miCoche.mueve( 0.040 );
+				
+//				System.out.println(miCoche.getVelocidad());
+//				System.out.println(miCoche.fuerzaAceleracionAdelante());
+//				System.out.println(miCoche.fuerzaAceleracionAtras());
+				
 				// Chequear choques
 				// (se comprueba tanto X como Y porque podría a la vez chocar en las dos direcciones (esquinas)
 				if (miMundo.hayChoqueHorizontal(miCoche)) // Espejo horizontal si choca en X
@@ -183,14 +159,17 @@ public class VentanaJuego extends JFrame {
 				if (miMundo.hayChoqueVertical(miCoche)) // Espejo vertical si choca en Y
 					miMundo.rebotaVertical(miCoche);
 				
+				miMundo.creaEstrella();
+				cuentaDeEstrellasFallo += miMundo.quitaYRotaEstrellas(6000);
+				cuentaPuntos += 5 * miMundo.choquesConEstrellas();
+				MundoJuego.aplicarFuerza(0, miCoche);
 				if(arrayPressed[0] == true)
 				{
-					miCoche.acelera( +5, 1 );
-
+					MundoJuego.aplicarFuerza(miCoche.fuerzaAceleracionAdelante(), miCoche);
 				}
 				if(arrayPressed[1] == true)
 				{
-					miCoche.acelera( -5, 1 );
+					MundoJuego.aplicarFuerza(miCoche.fuerzaAceleracionAtras(), miCoche);
 
 				}
 				if(arrayPressed[2] == true)
@@ -203,6 +182,9 @@ public class VentanaJuego extends JFrame {
 					miCoche.gira( -10 );
 
 				}
+				lMensaje.setText("PUNTUACION: "+cuentaPuntos);
+				acaba();
+				
 				// Dormir el hilo 40 milisegundos
 				try {
 					Thread.sleep( 40 );
@@ -213,7 +195,11 @@ public class VentanaJuego extends JFrame {
 		/** Ordena al hilo detenerse en cuanto sea posible
 		 */
 		public void acaba() {
-			sigo = false;
+			if(cuentaDeEstrellasFallo == 10)
+			{
+				sigo = false;
+				JOptionPane.showMessageDialog(pPrincipal,"Has conseguido : "+cuentaPuntos+" puntos", "Puntuación final", JOptionPane.PLAIN_MESSAGE);
+			}
 		}
 	};
 	
